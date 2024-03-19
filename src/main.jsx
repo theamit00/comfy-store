@@ -9,14 +9,11 @@ import { CartProvider } from './context/cart_context';
 import { UserProvider } from './context/user_context';
 import { Auth0Provider } from '@auth0/auth0-react';
 
-// domain : dev-i34fizg0znd084wj.us.auth0.com
-// clientId : iYMQTkavriIRoZ1NkPtMyyZcY6Owz9NH
-
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <Auth0Provider
-    domain="dev-i34fizg0znd084wj.us.auth0.com"
-    clientId="iYMQTkavriIRoZ1NkPtMyyZcY6Owz9NH"
+    domain={import.meta.env.VITE_AUTH0_DOMAIN}
+    clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
     authorizationParams={{
       redirect_uri: window.location.origin
     }}
