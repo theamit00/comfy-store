@@ -75,7 +75,7 @@ const CheckoutForm = () => {
     setIsLoading(true);
 
 
-    const response = await stripe.confirmPayment({
+    const {error} = await stripe.confirmPayment({
       elements,
       confirmParams: {
         // Make sure to change this to your payment completion page
