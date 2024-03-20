@@ -21,16 +21,16 @@ function App() {
         <Sidebar />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="about" element={<About />} />
-          <Route path="products">
+          <Route path="/about" element={<About />} />
+          <Route path="/products">
             <Route index element={<Products />} />
             <Route path=":id" element={<SingleProduct />} />
           </Route>
-          <Route path="cart" element={<Cart />} />
+          <Route path="/cart" element={<Cart />} />
           <Route element={<Private />}>
-            <Route path="checkout" element={<Checkout />} />
+            <Route path="/checkout" element={<Checkout />} />
           </Route>
-          <Route path="*" element={<Error />} />
+          <Route path="/*" element={<Error />} />
         </Routes>
         <Footer />
       </Router>
