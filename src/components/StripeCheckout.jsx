@@ -75,13 +75,15 @@ const CheckoutForm = () => {
 
     setIsLoading(true);
 
-    const response = await stripe.confirmPayment({
+    const {error} = await stripe.confirmPayment({
       elements,
       confirmParams: {
         // Make sure to change this to your payment completion page
         return_url: `${window.location.origin}/checkout`,
       },
     });
+
+    // console.log(response);
 
     // console.log(window.location.origin)
 
@@ -90,25 +92,24 @@ const CheckoutForm = () => {
     // your `return_url`. For some payment methods like iDEAL, your customer will
     // be redirected to an intermediate site first to authorize the payment, then
     // redirected to the `return_url`.
-    // if (error.type === "card_error" || error.type === "validation_error") {
-    //   setMessage(error.message);
-    // } else {
-    //   setMessage("An unexpected error occurred.");
-    // }
+    if (error.type === "card_error" || error.type === "validation_error") {
+        setIsLoading(false);
+      setMessage(error.message);
+    } else {
+      setIsLoading(false);
 
-    setIsLoading(false);
-
-    const intervalId = setInterval(() => {
-      setMessage(
-        `Thanks for making the payment, Redirecting to Hompage in ${countRef.current}`
-      );
-      countRef.current = countRef.current - 1;
-      if (countRef.current < 1) {
-        clearInterval(intervalId);
-        clearCart();
-        navigate("/");
-      }
-    }, 1000);
+      const intervalId = setInterval(() => {
+        setMessage(
+          `Thanks for making the payment, Redirecting to Hompage in ${countRef.current}`
+        );
+        countRef.current = countRef.current - 1;
+        if (countRef.current < 1) {
+          clearInterval(intervalId);
+          clearCart();
+          navigate("/");
+        }
+      }, 1000);
+    }
   };
 
   const paymentElementOptions = {
@@ -117,22 +118,25 @@ const CheckoutForm = () => {
 
   return (
     <div>
+      <article>
+        <h3>Your Total : {formatPrice(total_amount)}</h3>
+        <p>Test Card : 4242 4242 4242 4242</p>
+      </article>
 
-        <article>
-            <h3>Your Total : {formatPrice(total_amount)}</h3>
-            <p>Test Card : 4242 4242 4242 4242</p>
-        </article>
-
-        <form id="payment-form" onSubmit={handleSubmit}>
-      <PaymentElement id="payment-element" options={paymentElementOptions} />
-      <button disabled={isLoading || !stripe || !elements} id="submit">
-        <span id="button-text">
-          {isLoading ? <div className="spinner" id="spinner"></div> : "Pay now"}
-        </span>
-      </button>
-      {/* Show any error or success messages */}
-      {message && <div id="payment-message">{message}</div>}
-    </form>
+      <form id="payment-form" onSubmit={handleSubmit}>
+        <PaymentElement id="payment-element" options={paymentElementOptions} />
+        <button disabled={isLoading || !stripe || !elements} id="submit">
+          <span id="button-text">
+            {isLoading ? (
+              <div className="spinner" id="spinner"></div>
+            ) : (
+              "Pay now"
+            )}
+          </span>
+        </button>
+        {/* Show any error or success messages */}
+        {message && <div id="payment-message">{message}</div>}
+      </form>
     </div>
   );
 };
