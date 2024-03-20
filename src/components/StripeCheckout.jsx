@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -21,11 +21,13 @@ const stripePromise = loadStripe(
 );
 
 const CheckoutForm = () => {
-  const {myUser} = useUserContext();
+  const { myUser } = useUserContext();
+  const { clearCart } = useCartContext();
   const navigate = useNavigate();
+  const countRef = useRef(5);
 
-    //STRIPE STUFF
-    const stripe = useStripe();
+  //STRIPE STUFF
+  const stripe = useStripe();
   const elements = useElements();
   const [message, setMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +67,7 @@ const CheckoutForm = () => {
     e.preventDefault();
 
     if (!stripe || !elements) {
+      console.log(first);
       // Stripe.js hasn't yet loaded.
       // Make sure to disable form submission until Stripe.js has loaded.
       return;
@@ -72,14 +75,15 @@ const CheckoutForm = () => {
 
     setIsLoading(true);
 
-
-    const {error} = await stripe.confirmPayment({
+    const response = await stripe.confirmPayment({
       elements,
       confirmParams: {
         // Make sure to change this to your payment completion page
-        return_url: "http://localhost:8888/checkout",
+        return_url: `${window.location.origin}/checkout`,
       },
     });
+
+    // console.log(window.location.origin)
 
     // This point will only be reached if there is an immediate error when
     // confirming the payment. Otherwise, your customer will be redirected to
@@ -93,15 +97,26 @@ const CheckoutForm = () => {
     // }
 
     setIsLoading(false);
+
+    const intervalId = setInterval(() => {
+      setMessage(
+        `Thanks for making the payment, Redirecting to Hompage in ${countRef.current}`
+      );
+      countRef.current = countRef.current - 1;
+      if (countRef.current < 1) {
+        clearInterval(intervalId);
+        clearCart();
+        navigate("/");
+      }
+    }, 1000);
   };
 
   const paymentElementOptions = {
-    layout: "tabs"
-  }
+    layout: "tabs",
+  };
 
   return (
     <form id="payment-form" onSubmit={handleSubmit}>
-
       <PaymentElement id="payment-element" options={paymentElementOptions} />
       <button disabled={isLoading || !stripe || !elements} id="submit">
         <span id="button-text">
@@ -114,43 +129,44 @@ const CheckoutForm = () => {
   );
 };
 
-
 const StripeCheckout = () => {
-    const {cart, total_amount, shipping_fee, clearCart} = useCartContext();
-    const [clientSecret, setClientSecret] = useState("");
+  const { cart, total_amount, shipping_fee, clearCart } = useCartContext();
+  const [clientSecret, setClientSecret] = useState("");
 
-    useEffect(() => {
-        // Create PaymentIntent as soon as the page loads
+  useEffect(() => {
+    // Create PaymentIntent as soon as the page loads
 
-        const createPaymentIntent = async () =>{
-            try {
-                const {data} = await axios.post('/.netlify/functions/create-payment-intent',JSON.stringify({cart,total_amount, shipping_fee}));
-                setClientSecret(data.clientSecret);
-            } catch (error) {
-                console.log(error);
-            }
-        }
+    const createPaymentIntent = async () => {
+      try {
+        const { data } = await axios.post(
+          "/.netlify/functions/create-payment-intent",
+          JSON.stringify({ cart, total_amount, shipping_fee })
+        );
+        setClientSecret(data.clientSecret);
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-        createPaymentIntent()
+    createPaymentIntent();
+  }, []);
 
-      }, []);
+  const appearance = {
+    theme: "stripe",
+  };
 
-    const appearance = {
-        theme: "stripe",
-      };
-      
-      const options = {
-        clientSecret,
-        appearance,
-      };
+  const options = {
+    clientSecret,
+    appearance,
+  };
 
   return (
     <Wrapper>
-      {clientSecret &&
+      {clientSecret && (
         <Elements options={options} stripe={stripePromise}>
           <CheckoutForm />
         </Elements>
-      }
+      )}
     </Wrapper>
   );
 };
