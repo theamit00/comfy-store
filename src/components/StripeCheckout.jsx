@@ -22,7 +22,7 @@ const stripePromise = loadStripe(
 
 const CheckoutForm = () => {
   const { myUser } = useUserContext();
-  const { clearCart } = useCartContext();
+  const { clearCart, total_amount } = useCartContext();
   const navigate = useNavigate();
   const countRef = useRef(5);
 
@@ -116,7 +116,14 @@ const CheckoutForm = () => {
   };
 
   return (
-    <form id="payment-form" onSubmit={handleSubmit}>
+    <div>
+
+        <article>
+            <h3>Your Total : {formatPrice(total_amount)}</h3>
+            <p>Test Card : 4242 4242 4242 4242</p>
+        </article>
+
+        <form id="payment-form" onSubmit={handleSubmit}>
       <PaymentElement id="payment-element" options={paymentElementOptions} />
       <button disabled={isLoading || !stripe || !elements} id="submit">
         <span id="button-text">
@@ -126,6 +133,7 @@ const CheckoutForm = () => {
       {/* Show any error or success messages */}
       {message && <div id="payment-message">{message}</div>}
     </form>
+    </div>
   );
 };
 
